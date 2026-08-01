@@ -395,13 +395,6 @@
         }
     };
 
-    // Flags mapping (SVG vector icons for 100% cross-platform compatibility including Windows)
-    const flags = {
-        pt: '<img src="img/flags/pt.svg" alt="Português" class="flag-icon">',
-        en: '<img src="img/flags/en.svg" alt="English" class="flag-icon">',
-        it: '<img src="img/flags/it.svg" alt="Italiano" class="flag-icon">'
-    };
-
     let activeLang = 'pt';
 
     // 2. Main translation retrieval function
@@ -474,29 +467,7 @@
         });
     }
 
-    // 4. Update Seletor Button UI state
-    function updateSelectorUI() {
-        const langBtn = document.getElementById('lang-btn');
-        if (!langBtn) return;
-
-        const flagSpan = langBtn.querySelector('.lang-flag');
-        const textSpan = langBtn.querySelector('.lang-text');
-        
-        if (flagSpan) flagSpan.innerHTML = flags[activeLang];
-        if (textSpan) textSpan.textContent = activeLang.toUpperCase();
-
-        // Update active class in dropdown items
-        const dropdownItems = document.querySelectorAll('.lang-dropdown-item');
-        dropdownItems.forEach(item => {
-            if (item.getAttribute('data-lang') === activeLang) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    }
-
-    // 5. Change language engine
+    // 4. Change language engine
     function setLanguage(lang) {
         if (!dictionary[lang]) return;
         
@@ -504,14 +475,13 @@
         localStorage.setItem('portfolio-lang', lang);
         
         translateDOM();
-        updateSelectorUI();
 
         // Dispatch a global event so that other scripts (e.g. typewriter, forms) can adapt
         const event = new CustomEvent('languageChanged', { detail: { language: lang } });
         window.dispatchEvent(event);
     }
 
-    // 6. Automatically detect browser language preferences
+    // 5. Automatically detect browser language preferences
     function detectLanguage() {
         // First check localStorage
         const savedLang = localStorage.getItem('portfolio-lang');
@@ -532,12 +502,11 @@
         return 'pt';
     }
 
-    // 7. Initialize Localization
+    // 6. Initialize Localization
     function init() {
         const detected = detectLanguage();
         activeLang = detected;
         translateDOM();
-        updateSelectorUI();
     }
 
     // Expose APIs to window
@@ -553,3 +522,4 @@
         init();
     });
 })();
+

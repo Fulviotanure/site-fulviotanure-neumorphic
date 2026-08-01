@@ -10,7 +10,6 @@
         // Dark mode removed
         initMobileNavigation();
         initScrollSpy();
-        initLanguageManager();
         initAccessibilityHelper();
         initPhotographyPreloader();
     });
@@ -128,61 +127,7 @@
         });
     }
 
-    /* ==========================================================================
-       LANGUAGE SELECTOR ACTIONS (PT / EN / IT INTERACTION)
-       ========================================================================== */
-    function initLanguageManager() {
-        const langBtn = document.getElementById('lang-btn');
-        const langDropdown = document.getElementById('lang-dropdown');
-        const dropdownItems = document.querySelectorAll('.lang-dropdown-item');
 
-        if (!langBtn || !langDropdown) return;
-
-        // Toggle dropdown open/close
-        langBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isExpanded = langBtn.getAttribute('aria-expanded') === 'true';
-            
-            langBtn.setAttribute('aria-expanded', !isExpanded);
-            langDropdown.classList.toggle('show');
-            langBtn.classList.toggle('active');
-        });
-
-        // Click handler for dropdown items
-        dropdownItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const selectedLang = item.getAttribute('data-lang');
-                if (window.i18n && typeof window.i18n.setLanguage === 'function') {
-                    window.i18n.setLanguage(selectedLang);
-                }
-                
-                // Close dropdown
-                langDropdown.classList.remove('show');
-                langBtn.classList.remove('active');
-                langBtn.setAttribute('aria-expanded', 'false');
-            });
-        });
-
-        // Close dropdown when clicking anywhere else on the document
-        document.addEventListener('click', (e) => {
-            if (langDropdown.classList.contains('show') && !e.target.closest('.lang-selector-wrapper')) {
-                langDropdown.classList.remove('show');
-                langBtn.classList.remove('active');
-                langBtn.setAttribute('aria-expanded', 'false');
-            }
-        });
-
-        // Close dropdown with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && langDropdown.classList.contains('show')) {
-                langDropdown.classList.remove('show');
-                langBtn.classList.remove('active');
-                langBtn.setAttribute('aria-expanded', 'false');
-                langBtn.focus();
-            }
-        });
-    }
 
     /* ==========================================================================
        ACCESSIBILITY HELPER (AUTOMATION)

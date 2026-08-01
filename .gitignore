@@ -1,0 +1,16 @@
+# Dependências e arquivos gerados
+node_modules/
+.firebase/
+*.log
+package-lock.json
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos locais (servidor de desenvolvimento)
+server.js
+*.bat
+*.ps1
+

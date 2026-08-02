@@ -2774,26 +2774,6 @@ function refreshCustomSelect(selectEl) {
   if (selectEl && selectEl._customRefresh) selectEl._customRefresh();
 }
 
-async function fetchSupportedGeminiModels(apiKey) {
-  try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
-      headers: { "x-goog-api-key": apiKey }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data.models)) {
-        const supported = data.models
-          .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes("generateContent"))
-          .map(m => m.name.replace(/^models\//, ""));
-        if (supported.length > 0) return supported;
-      }
-    }
-  } catch (e) {
-    console.warn("[WMacro Gemini] Could not fetch models list:", e);
-  }
-  return [];
-}
-
 async function callGeminiAI(text) {
   if (!state.geminiApiKey || !state.geminiApiKey.trim()) {
     showToast("Por favor, insira sua chave da API do Gemini nas Configurações.", false);
@@ -2805,73 +2785,54 @@ async function callGeminiAI(text) {
     ? state.variables.map(v => `{${v.name}}`).join(", ")
     : "";
   const varInstruction = activeVars
-    ? `Variáveis disponíveis do sistema: ${activeVars}. Mantenha as tags HTML de variáveis existentes.`
+    ? `Variáveis disponíveis do sistema: ${activeVars}. Mantenha as tags HTML de variáveis existentes se houver.`
     : "";
 
-  const promptText = `Você é um assistente de escrita profissional para macros de respostas rápidas de atendimento.
-Use um tom de voz estritamente profissional, cortês, claro e objetivo.
-${varInstruction}
-Corrija erros ortográficos e de concordância, escreva de maneira mais fluida e melhore a formatação visual do texto a seguir.
-Mantenha o formato HTML, links e as variáveis em formato HTML.
-Retorne APENAS o texto revisado e polido final (não use markdown block como \`\`\`html ou similar, retorne a string direta de HTML).
+  const systemInstructionText = `Você é um assistente de escrita de atendimento profissional.
+Sua única tarefa é reescrever o texto do usuário em tom cortês, claro, profissional e objetivo em HTML.
+NÃO inclua explicações, notas, raciocínios, rascunhos (Draft 1/2), nem marcações markdown como \`\`\`html.
+Retorne EXCLUSIVAMENTE o texto final polido em formato HTML.
+${varInstruction}`;
 
-Texto original:
-${text}`;
+  const payload = {
+    system_instruction: {
+      parts: [{ text: systemInstructionText }]
+    },
+    contents: [{
+      parts: [{ text: text }]
+    }],
+    generationConfig: {
+      temperature: 0.1,
+      maxOutputTokens: 1024
+    }
+  };
 
-  let modelsToTry = await fetchSupportedGeminiModels(apiKey);
-
-  if (!modelsToTry || modelsToTry.length === 0) {
-    modelsToTry = [
-      "gemini-2.0-flash",
-      "gemini-1.5-flash",
-      "gemini-1.5-pro",
-      "gemini-2.0-flash-lite",
-      "gemini-2.0-flash-exp"
-    ];
-  }
-
-  const apiVersions = ["v1beta", "v1"];
+  const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
   let lastErrorMsg = "";
 
-  for (const apiVer of apiVersions) {
-    for (const model of modelsToTry) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ text: promptText }]
-            }]
-          })
-        });
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            let cleaned = rawText.trim();
-            if (cleaned.startsWith("```html")) {
-              cleaned = cleaned.substring(7);
-            } else if (cleaned.startsWith("```")) {
-              cleaned = cleaned.substring(3);
-            }
-            if (cleaned.endsWith("```")) {
-              cleaned = cleaned.slice(0, -3);
-            }
-            return cleaned.trim();
-          }
-        } else {
-          const errData = await response.json().catch(() => ({}));
-          lastErrorMsg = errData.error?.message || `Status ${response.status}`;
+      if (response.ok) {
+        const data = await response.json();
+        let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          let cleaned = rawText.trim();
+          cleaned = cleaned.replace(/^```html\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "");
+          return cleaned.trim();
         }
-      } catch (err) {
-        lastErrorMsg = err.message || "Erro de conexão";
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        lastErrorMsg = errData.error?.message || `Status ${response.status}`;
       }
+    } catch (err) {
+      lastErrorMsg = err.message || "Erro de conexão";
     }
   }
 
@@ -2880,38 +2841,26 @@ ${text}`;
 }
 
 async function testGeminiAPIKey(key) {
-  let modelsToTry = await fetchSupportedGeminiModels(key);
-  if (!modelsToTry || modelsToTry.length === 0) {
-    modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"];
-  }
-
+  const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
   let lastMsg = "Erro ao testar a chave da API.";
-  const apiVersions = ["v1beta", "v1"];
 
-  for (const apiVer of apiVersions) {
-    for (const model of modelsToTry) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${key}`;
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": key
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ text: "Olá" }]
-            }]
-          })
-        });
-        if (response.ok) {
-          return { ok: true };
-        }
-        const errData = await response.json().catch(() => ({}));
-        lastMsg = errData.error?.message || `Status ${response.status}`;
-      } catch (err) {
-        lastMsg = err.message || "Erro de conexão de rede.";
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "Olá" }] }]
+        })
+      });
+      if (response.ok) {
+        return { ok: true };
       }
+      const errData = await response.json().catch(() => ({}));
+      lastMsg = errData.error?.message || `Status ${response.status}`;
+    } catch (err) {
+      lastMsg = err.message || "Erro de conexão de rede.";
     }
   }
 

@@ -699,6 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCategoriesSelectors();
   renderMacrosCategoryFilterOptions();
   checkMacrosExistState();
+  switchTab("landing");
   lucide.createIcons();
   initCustomSelects();
 
@@ -787,7 +788,7 @@ function saveData(key, data) {
 // NAVIGATION / TABS
 // =============================================
 // Tab IDs that live in the sidebar as navigation items
-const NAV_TABS = ["dashboard", "macros", "variables", "settings"];
+const NAV_TABS = ["landing", "dashboard", "macros", "variables", "settings"];
 
 // Prefill page state
 let prefillState = {

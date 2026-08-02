@@ -2774,6 +2774,26 @@ function refreshCustomSelect(selectEl) {
   if (selectEl && selectEl._customRefresh) selectEl._customRefresh();
 }
 
+async function fetchSupportedGeminiModels(apiKey) {
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+      headers: { "x-goog-api-key": apiKey }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.models)) {
+        const supported = data.models
+          .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes("generateContent"))
+          .map(m => m.name.replace(/^models\//, ""));
+        if (supported.length > 0) return supported;
+      }
+    }
+  } catch (e) {
+    console.warn("[WMacro Gemini] Could not fetch models list:", e);
+  }
+  return [];
+}
+
 async function callGeminiAI(text) {
   if (!state.geminiApiKey || !state.geminiApiKey.trim()) {
     showToast("Por favor, insira sua chave da API do Gemini nas Configurações.", false);
@@ -2798,52 +2818,60 @@ Retorne APENAS o texto revisado e polido final (não use markdown block como \`\
 Texto original:
 ${text}`;
 
-  const modelsToTry = [
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-2.5-flash",
-    "gemini-pro"
-  ];
+  let modelsToTry = await fetchSupportedGeminiModels(apiKey);
 
+  if (!modelsToTry || modelsToTry.length === 0) {
+    modelsToTry = [
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+      "gemini-1.5-pro",
+      "gemini-2.0-flash-lite",
+      "gemini-2.0-flash-exp"
+    ];
+  }
+
+  const apiVersions = ["v1beta", "v1"];
   let lastErrorMsg = "";
 
-  for (const model of modelsToTry) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: promptText }]
-          }]
-        })
-      });
+  for (const apiVer of apiVersions) {
+    for (const model of modelsToTry) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: promptText }]
+            }]
+          })
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          let cleaned = rawText.trim();
-          if (cleaned.startsWith("```html")) {
-            cleaned = cleaned.substring(7);
-          } else if (cleaned.startsWith("```")) {
-            cleaned = cleaned.substring(3);
+        if (response.ok) {
+          const data = await response.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            let cleaned = rawText.trim();
+            if (cleaned.startsWith("```html")) {
+              cleaned = cleaned.substring(7);
+            } else if (cleaned.startsWith("```")) {
+              cleaned = cleaned.substring(3);
+            }
+            if (cleaned.endsWith("```")) {
+              cleaned = cleaned.slice(0, -3);
+            }
+            return cleaned.trim();
           }
-          if (cleaned.endsWith("```")) {
-            cleaned = cleaned.slice(0, -3);
-          }
-          return cleaned.trim();
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          lastErrorMsg = errData.error?.message || `Status ${response.status}`;
         }
-      } else {
-        const errData = await response.json().catch(() => ({}));
-        lastErrorMsg = errData.error?.message || `Status ${response.status}`;
+      } catch (err) {
+        lastErrorMsg = err.message || "Erro de conexão";
       }
-    } catch (err) {
-      lastErrorMsg = err.message || "Erro de conexão";
     }
   }
 
@@ -2852,31 +2880,38 @@ ${text}`;
 }
 
 async function testGeminiAPIKey(key) {
-  const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-2.5-flash", "gemini-pro"];
-  let lastMsg = "Erro ao testar a chave da API.";
+  let modelsToTry = await fetchSupportedGeminiModels(key);
+  if (!modelsToTry || modelsToTry.length === 0) {
+    modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"];
+  }
 
-  for (const model of modelsToTry) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": key
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: "Olá" }]
-          }]
-        })
-      });
-      if (response.ok) {
-        return { ok: true };
+  let lastMsg = "Erro ao testar a chave da API.";
+  const apiVersions = ["v1beta", "v1"];
+
+  for (const apiVer of apiVersions) {
+    for (const model of modelsToTry) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${key}`;
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": key
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: "Olá" }]
+            }]
+          })
+        });
+        if (response.ok) {
+          return { ok: true };
+        }
+        const errData = await response.json().catch(() => ({}));
+        lastMsg = errData.error?.message || `Status ${response.status}`;
+      } catch (err) {
+        lastMsg = err.message || "Erro de conexão de rede.";
       }
-      const errData = await response.json().catch(() => ({}));
-      lastMsg = errData.error?.message || `Status ${response.status}`;
-    } catch (err) {
-      lastMsg = err.message || "Erro de conexão de rede.";
     }
   }
 

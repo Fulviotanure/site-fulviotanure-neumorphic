@@ -535,7 +535,8 @@ let state = {
   variables: [],
   activeTab: "dashboard",
   currentTheme: "dark",
-  geminiApiKey: "",
+  geminiApiKey: localStorage.getItem("quickmacros_gemini_key") || "",
+  aiProxyUrl: localStorage.getItem("quickmacros_ai_proxy_url") || "",
   userProfile: null,
   macrosViewMode: localStorage.getItem("quickmacros_view_mode") || "grid",
 };
@@ -2295,7 +2296,7 @@ function setupEventListeners() {
       lucide.createIcons();
 
       try {
-        const improvedText = await callGeminiAI(textToProcess);
+        const improvedText = await callAIProcessor(textToProcess);
         if (improvedText) {
           saveEditorState(); // Save state before AI modification
           if (isSelection && range) {
@@ -2312,20 +2313,20 @@ function setupEventListeners() {
             el.editorContainer.innerHTML = improvedText;
           }
           saveEditorState(); // Save state after AI modification
-          showToast("✨ Texto totalmente reescrito e aprimorado pela IA Gemini!");
+          showToast("✨ Texto totalmente reescrito e aprimorado pela IA!");
         }
       } catch (err) {
         console.error("[WMacro AI]", err);
-        if (err.code === "NO_KEY") {
-          if (confirm("Para a Inteligência Artificial (Google Gemini) reescrever seu texto com parágrafos, vírgulas e tom profissional, é necessário inserir sua chave gratuita da API do Gemini.\n\nDeseja abrir as Configurações agora para salvar sua chave gratuita em 1 minuto?")) {
+        if (err.code === "NO_CONFIG" || err.code === "NO_KEY") {
+          if (confirm("Para a Inteligência Artificial reescrever seu texto de forma profissional, insira uma Chave da API do Gemini ou salve a URL do Servidor QwenProxy nas Configurações.\n\nDeseja abrir as Configurações agora?")) {
             switchTab("settings");
             setTimeout(() => {
-              const input = document.getElementById("settings-gemini-key");
+              const input = document.getElementById("settings-qwen-proxy-url") || document.getElementById("settings-gemini-key");
               if (input) input.focus();
             }, 300);
           }
         } else {
-          showToast(`Erro na IA do Gemini: ${err.message || "Verifique sua chave nas Configurações."}`, false);
+          showToast(`Erro na IA: ${err.message || "Verifique a conexão nas Configurações."}`, false);
         }
       } finally {
         el.btnEditorAi.disabled = false;
@@ -2558,6 +2559,29 @@ function setupEventListeners() {
     }
   });
 
+  // AI Settings Form Handlers
+  const geminiInput = document.getElementById("settings-gemini-key");
+  if (geminiInput && state.geminiApiKey) geminiInput.value = state.geminiApiKey;
+  
+  document.getElementById("gemini-key-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const val = document.getElementById("settings-gemini-key")?.value.trim() || "";
+    state.geminiApiKey = val;
+    localStorage.setItem("quickmacros_gemini_key", val);
+    showToast(val ? "Chave da API do Gemini salva!" : "Chave da API removida.");
+  });
+
+  const qwenInput = document.getElementById("settings-qwen-proxy-url");
+  if (qwenInput && state.aiProxyUrl) qwenInput.value = state.aiProxyUrl;
+
+  document.getElementById("qwen-proxy-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const val = document.getElementById("settings-qwen-proxy-url")?.value.trim() || "";
+    state.aiProxyUrl = val;
+    localStorage.setItem("quickmacros_ai_proxy_url", val);
+    showToast(val ? "Servidor Proxy IA (QwenProxy) salvo!" : "Servidor Proxy removido.");
+  });
+
   // Toggle AI Tutorial Box
   document.getElementById("btn-toggle-ai-tutorial")?.addEventListener("click", () => {
     const tutorialBox = document.getElementById("ai-tutorial-box");
@@ -2782,6 +2806,85 @@ function enhanceSelect(selectEl) {
 
 function refreshCustomSelect(selectEl) {
   if (selectEl && selectEl._customRefresh) selectEl._customRefresh();
+}
+
+async function callAIProcessor(text) {
+  const proxyUrl = (state.aiProxyUrl && state.aiProxyUrl.trim()) ? state.aiProxyUrl.trim() : "";
+  const geminiKey = (state.geminiApiKey && state.geminiApiKey.trim()) ? state.geminiApiKey.trim() : "";
+
+  if (proxyUrl) {
+    return await callOpenAIProxy(proxyUrl, text);
+  } else if (geminiKey) {
+    return await callGeminiAI(text);
+  } else {
+    const err = new Error("NO_CONFIG");
+    err.code = "NO_CONFIG";
+    throw err;
+  }
+}
+
+async function callOpenAIProxy(baseUrl, text) {
+  const activeVars = (state.variables && state.variables.length)
+    ? state.variables.map(v => `{${v.name}}`).join(", ")
+    : "";
+  const varInstruction = activeVars
+    ? `Variáveis disponíveis no sistema: ${activeVars}. Mantenha todas as tags de variáveis no formato HTML (ex: {nome}, {saudacao}).`
+    : "";
+
+  const promptText = `Você é um especialista em Inteligência Artificial para escrita publicitária e atendimento ao cliente de alto nível.
+Sua missão é reescrever, aprimorar e transformar o rascunho de texto abaixo em uma resposta rápida de atendimento IMPECÁVEL, ELEGANTE E PRONTA PARA O CLIENTE.
+
+REGRAS OBRIGATÓRIAS DE REESTRUTURAÇÃO E INTELIGÊNCIA ARTIFICIAL:
+1. Reestruture as frases para garantir excelente fluidez, pontuação correta (vírgulas, pontos) e concordância verbal/nominal perfeita.
+2. Substitua palavras informais, repetitivas ou inadequadas por um vocabulário cortês, claro e altamente profissional de suporte/vendas.
+3. Organize o texto com parágrafos bem espaçados (use tags HTML como <p> ou <br>) para facilitar a leitura rápida do cliente.
+4. ${varInstruction}
+5. Mantenha os links e elementos HTML existentes intactos.
+6. Retorne APENAS o código HTML do texto final aprimorado. NÃO use blocos de código markdown como \`\`\`html.
+
+RASCUNHO DO USUÁRIO PARA TRANSFORMAR:
+${text}`;
+
+  let cleanUrl = baseUrl.replace(/\/$/, "");
+  if (!cleanUrl.endsWith("/v1/chat/completions")) {
+    cleanUrl = `${cleanUrl}/v1/chat/completions`;
+  }
+
+  const response = await fetch(cleanUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "qwen-max",
+      messages: [
+        { role: "system", content: "Você é um assistente sênior de escrita profissional." },
+        { role: "user", content: promptText }
+      ],
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    const msg = errData.error?.message || `Erro HTTP ${response.status} no Servidor Proxy QwenProxy.`;
+    throw new Error(msg);
+  }
+
+  const data = await response.json();
+  const rawText = data.choices?.[0]?.message?.content || data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!rawText) throw new Error("Sem resposta válida do Servidor Proxy.");
+
+  let cleaned = rawText.trim();
+  if (cleaned.startsWith("```html")) {
+    cleaned = cleaned.substring(7);
+  } else if (cleaned.startsWith("```")) {
+    cleaned = cleaned.substring(3);
+  }
+  if (cleaned.endsWith("```")) {
+    cleaned = cleaned.slice(0, -3);
+  }
+  return cleaned.trim();
 }
 
 async function callGeminiAI(text) {

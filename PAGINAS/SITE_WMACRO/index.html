@@ -142,65 +142,46 @@
             <!-- ======================================== -->
             <section id="tab-landing" class="tab-panel">
                 <div class="landing-hero-container">
-                    <div class="landing-badge">
-                        <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--color-primary);"></i>
-                        <span>WMacro • Sistema Inteligente de Respostas Rápidas com IA</span>
+                    <!-- Centered Logo at the top -->
+                    <div class="landing-logo-wrapper">
+                        <img src="wmacro.png" alt="WMacro Logo" class="landing-logo-img">
                     </div>
 
-                    <h1 class="landing-title">
-                        Agilize seu Atendimento no WhatsApp e Redes Sociais com <span class="gradient-text">Macros Inteligentes e IA</span>
-                    </h1>
+                    <div class="landing-badge">
+                        <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--color-primary);"></i>
+                        <span>WMacro • Gestão Inteligente de Atendimento com IA</span>
+                    </div>
+
+                    <!-- Big typography headline with different font styles -->
+                    <div class="landing-typography-showcase">
+                        <h1 class="landing-title-main">
+                            <span class="font-accent-gradient">Respostas Rápidas</span> <span class="font-ampersand">&</span> <span class="font-highlight-bold">Textos Prontos</span>
+                        </h1>
+                        <div class="landing-sub-headline">
+                            Potencialize o seu atendimento profissional em tempo recorde
+                        </div>
+                    </div>
+
+                    <!-- Target Platforms Chips Grid -->
+                    <div class="platform-chips-container">
+                        <span class="platform-chip chip-whatsapp"><i data-lucide="message-circle"></i> WhatsApp Web</span>
+                        <span class="platform-chip chip-vendas"><i data-lucide="shopping-cart"></i> Sistemas de Vendas</span>
+                        <span class="platform-chip chip-servicedesk"><i data-lucide="headphones"></i> Service Desk</span>
+                        <span class="platform-chip chip-suporte"><i data-lucide="wrench"></i> Suporte Técnico & SAC</span>
+                        <span class="platform-chip chip-social"><i data-lucide="share-2"></i> Redes Sociais & E-mail</span>
+                    </div>
 
                     <p class="landing-subtitle">
-                        Crie respostas profissionais formatadas em segundos, adapte saudações automaticamente ao horário de envio e refine seus textos com 1 clique utilizando a IA do Google Gemini.
+                        Crie macros formatadas em segundos, adapte saudações automaticamente ao horário do envio e refine seus textos com 1 clique usando a Inteligência Artificial do Google Gemini.
                     </p>
 
                     <div class="landing-cta-group">
                         <button class="btn btn-primary btn-large btn-cta-start-app">
                             <i data-lucide="rocket"></i> Começar a Usar Agora
                         </button>
-                        <button class="btn btn-secondary btn-large btn-cta-demo">
-                            <i data-lucide="play-circle"></i> Ver Demonstração Prática
+                        <button class="btn btn-secondary btn-large btn-cta-examples">
+                            <i data-lucide="file-text"></i> Ver Modelos Práticos
                         </button>
-                    </div>
-                </div>
-
-                <!-- Interactive Sandbox Section -->
-                <div class="landing-section" id="landing-demo-section">
-                    <div class="landing-section-header">
-                        <span class="badge">Demonstração ao Vivo</span>
-                        <h2>Veja como as Variáveis Inteligentes Funcionam na Prática</h2>
-                        <p>Altere o horário simulado ou o nome do cliente abaixo para ver a macro se adaptar automaticamente em tempo real:</p>
-                    </div>
-
-                    <div class="landing-sandbox-card">
-                        <div class="sandbox-controls">
-                            <div class="form-group">
-                                <label><i data-lucide="clock" style="width:14px;height:14px;"></i> Horário Simulado do Envio</label>
-                                <div class="sandbox-time-options">
-                                    <button type="button" class="btn-time-sim active" data-time="09:00">09:00 (Manhã)</button>
-                                    <button type="button" class="btn-time-sim" data-time="14:30">14:30 (Tarde)</button>
-                                    <button type="button" class="btn-time-sim" data-time="20:00">20:00 (Noite)</button>
-                                </div>
-                            </div>
-
-                            <div class="form-group" style="margin-top:16px;">
-                                <label><i data-lucide="user" style="width:14px;height:14px;"></i> Nome do Cliente</label>
-                                <input type="text" id="sandbox-client-name" class="form-control" value="João Silva" placeholder="Digite o nome do cliente...">
-                            </div>
-                        </div>
-
-                        <div class="sandbox-preview">
-                            <div class="sandbox-preview-header">
-                                <span><i data-lucide="eye" style="width:14px;height:14px;"></i> Pré-visualização da Resposta Enviada</span>
-                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Pronto para Copiar</span>
-                            </div>
-                            <div class="sandbox-preview-body" id="sandbox-preview-output">
-                                <span class="var-pill" style="--pill-color: #3b82f6;">Bom dia</span> <span class="var-pill" style="--pill-color: #10b981;">João Silva</span>,<br><br>
-                                Obrigado pelo seu contato! Confirmamos o recebimento da sua mensagem e já iniciamos a análise da sua solicitação com nossa equipe comercial.<br><br>
-                                Qualquer dúvida, estamos à disposição!
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1590,7 +1571,7 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="app.js?v=7.0.0&t=20260802_landingshowcase"></script>
+    <script src="app.js?v=8.0.0&t=20260802_logotitle"></script>
 </body>
 
 </html>

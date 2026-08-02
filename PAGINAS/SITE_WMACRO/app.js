@@ -2572,8 +2572,10 @@ function setupEventListeners() {
     });
   });
 
-  document.querySelector(".btn-cta-demo")?.addEventListener("click", () => {
-    document.getElementById("landing-demo-section")?.scrollIntoView({ behavior: "smooth" });
+  document.querySelectorAll(".btn-cta-examples").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelector(".landing-examples-grid")?.scrollIntoView({ behavior: "smooth" });
+    });
   });
 
   // Landing Interactive Sandbox Controls

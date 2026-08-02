@@ -2836,7 +2836,41 @@ function improveTextLocally(text) {
 
   let cleaned = text;
 
-  // Normalização de pontuação e espaçamentos
+  // Dicionário de correções ortográficas e gírias comuns de digitação rápida
+  const corrections = [
+    [/\beum\b/gi, 'um'],
+    [/\bjoao\b/gi, 'João'],
+    [/\bjoão\b/gi, 'João'],
+    [/\bvoce\b/gi, 'você'],
+    [/\bvoces\b/gi, 'vocês'],
+    [/\bpra\b/gi, 'para'],
+    [/\bpro\b/gi, 'para o'],
+    [/\bpras\b/gi, 'para as'],
+    [/\bpros\b/gi, 'para os'],
+    [/\bia\b/gi, 'IA'],
+    [/\bna tiva\b/gi, 'nativa'],
+    [/\bdete\b/gi, 'deste'],
+    [/\bresposytas\b/gi, 'respostas'],
+    [/\brapidasmpara\b/gi, 'rápidas para'],
+    [/\brapidas\b/gi, 'rápidas'],
+    [/\bcrlientes\b/gi, 'clientes'],
+    [/\bobg\b/gi, 'obrigado'],
+    [/\bvc\b/gi, 'você'],
+    [/\bvcs\b/gi, 'vocês'],
+    [/\btbm\b/gi, 'também'],
+    [/\bnao\b/gi, 'não'],
+    [/\bduvida\b/gi, 'dúvida'],
+    [/\bduvidas\b/gi, 'dúvidas']
+  ];
+
+  corrections.forEach(([pattern, replacement]) => {
+    cleaned = cleaned.replace(pattern, replacement);
+  });
+
+  // Corrigir palavras grudadas terminadas em "mpara" ou "para"
+  cleaned = cleaned.replace(/([a-zA-ZÀ-ÿ]{3,})mpara\b/gi, '$1 para');
+
+  // Normalização de pontuação e espaçamentos (ex: "tudo bem ?" -> "tudo bem?")
   cleaned = cleaned.replace(/\s+/g, ' ');
   cleaned = cleaned.replace(/\s+([.,!?;:])/, '$1');
   cleaned = cleaned.replace(/([.,!?;:])([a-zA-ZÀ-ÿ])/g, '$1 $2');

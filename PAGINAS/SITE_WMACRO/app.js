@@ -2315,12 +2315,8 @@ function setupEventListeners() {
           showToast("Texto melhorado com IA!");
         }
       } catch (err) {
-        console.warn("[WMacro AI] Processando via polidor de texto nativo:", err);
-        const fallbackText = improveTextLocally(textToProcess);
-        if (fallbackText) {
-          el.editorContainer.innerHTML = fallbackText;
-          showToast("Texto melhorado com sucesso!");
-        }
+        console.error(err);
+        showToast("Erro ao processar com a API do Google Gemini.", false);
       } finally {
         el.btnEditorAi.disabled = false;
         el.btnEditorAi.innerHTML = originalHTML;
@@ -2779,8 +2775,12 @@ function refreshCustomSelect(selectEl) {
 }
 
 async function callGeminiAI(text) {
-  const targetKey = (state.geminiApiKey && state.geminiApiKey.trim()) ? state.geminiApiKey.trim() : "";
+  if (!state.geminiApiKey || !state.geminiApiKey.trim()) {
+    showToast("Por favor, insira sua chave da API do Gemini nas Configurações.", false);
+    return null;
+  }
 
+  const apiKey = state.geminiApiKey.trim();
   const activeVars = (state.variables && state.variables.length)
     ? state.variables.map(v => `{${v.name}}`).join(", ")
     : "";
@@ -2788,32 +2788,41 @@ async function callGeminiAI(text) {
     ? `Variáveis disponíveis do sistema: ${activeVars}. Mantenha as tags HTML de variáveis existentes.`
     : "";
 
-  if (targetKey) {
+  const promptText = `Você é um assistente de escrita profissional para macros de respostas rápidas de atendimento.
+Use um tom de voz estritamente profissional, cortês, claro e objetivo.
+${varInstruction}
+Corrija erros ortográficos e de concordância, escreva de maneira mais fluida e melhore a formatação visual do texto a seguir.
+Mantenha o formato HTML, links e as variáveis em formato HTML.
+Retorne APENAS o texto revisado e polido final (não use markdown block como \`\`\`html ou similar, retorne a string direta de HTML).
+
+Texto original:
+${text}`;
+
+  const modelsToTry = [
+    "gemini-2.0-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-2.5-flash",
+    "gemini-pro"
+  ];
+
+  let lastErrorMsg = "";
+
+  for (const model of modelsToTry) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": targetKey
+          "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
           contents: [{
-            parts: [{
-              text: `Você é um assistente de escrita profissional para macros de respostas rápidas de atendimento.
-              Use um tom de voz estritamente profissional, cortês, claro e objetivo.
-              ${varInstruction}
-              Corrija erros ortográficos e de concordância, escreva de maneira mais fluida e melhore a formatação visual do texto a seguir.
-              Mantenha o formato HTML, links e as variáveis em formato HTML.
-              Retorne APENAS o texto revisado e polido final (não use markdown block como \`\`\`html ou similar, retorne a string direta de HTML).
-
-Texto original:
-${text}`
-            }]
+            parts: [{ text: promptText }]
           }]
         })
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -2829,103 +2838,49 @@ ${text}`
           }
           return cleaned.trim();
         }
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        lastErrorMsg = errData.error?.message || `Status ${response.status}`;
       }
     } catch (err) {
-      console.warn("[WMacro AI] Chamada externa falhou, utilizando polidor nativo integrado:", err);
+      lastErrorMsg = err.message || "Erro de conexão";
     }
   }
 
-  // Polidor nativo inteligente gratuito (Zero configuração necessária)
-  return improveTextLocally(text);
-}
-
-function improveTextLocally(text) {
-  if (!text) return text;
-
-  let cleaned = text;
-
-  // Dicionário de correções ortográficas e gírias comuns de digitação rápida
-  const corrections = [
-    [/\beum\b/gi, 'um'],
-    [/\bjoao\b/gi, 'João'],
-    [/\bjoão\b/gi, 'João'],
-    [/\bvoce\b/gi, 'você'],
-    [/\bvoces\b/gi, 'vocês'],
-    [/\bpra\b/gi, 'para'],
-    [/\bpro\b/gi, 'para o'],
-    [/\bpras\b/gi, 'para as'],
-    [/\bpros\b/gi, 'para os'],
-    [/\bia\b/gi, 'IA'],
-    [/\bna tiva\b/gi, 'nativa'],
-    [/\bdete\b/gi, 'deste'],
-    [/\bresposytas\b/gi, 'respostas'],
-    [/\brapidasmpara\b/gi, 'rápidas para'],
-    [/\brapidas\b/gi, 'rápidas'],
-    [/\bcrlientes\b/gi, 'clientes'],
-    [/\bobg\b/gi, 'obrigado'],
-    [/\bvc\b/gi, 'você'],
-    [/\bvcs\b/gi, 'vocês'],
-    [/\btbm\b/gi, 'também'],
-    [/\bnao\b/gi, 'não'],
-    [/\bduvida\b/gi, 'dúvida'],
-    [/\bduvidas\b/gi, 'dúvidas']
-  ];
-
-  corrections.forEach(([pattern, replacement]) => {
-    cleaned = cleaned.replace(pattern, replacement);
-  });
-
-  // Corrigir palavras grudadas terminadas em "mpara" ou "para"
-  cleaned = cleaned.replace(/([a-zA-ZÀ-ÿ]{3,})mpara\b/gi, '$1 para');
-
-  // Normalização de pontuação e espaçamentos (ex: "tudo bem ?" -> "tudo bem?")
-  cleaned = cleaned.replace(/\s+/g, ' ');
-  cleaned = cleaned.replace(/\s+([.,!?;:])/, '$1');
-  cleaned = cleaned.replace(/([.,!?;:])([a-zA-ZÀ-ÿ])/g, '$1 $2');
-
-  // Ajuste de maiúsculas no início de frases
-  cleaned = cleaned.replace(/(^\s*|[.!?]\s+)([a-zà-ÿ])/g, (m, p1, p2) => p1 + p2.toUpperCase());
-
-  // Formatação automática de tags de variáveis em estilo pílula se existirem
-  if (state.variables && Array.isArray(state.variables)) {
-    state.variables.forEach(v => {
-      if (!v || !v.name) return;
-      const varName = v.name;
-      const regex = new RegExp(`\\{${varName}\\}`, 'gi');
-      cleaned = cleaned.replace(regex, `<span class="macro-var-pill" contenteditable="false">{${varName}}</span>`);
-    });
-  }
-
-  return cleaned.trim();
+  showToast(`Erro na IA: ${lastErrorMsg}`, false);
+  return null;
 }
 
 async function testGeminiAPIKey(key) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`;
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": key
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: "Olá"
+  const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-2.5-flash", "gemini-pro"];
+  let lastMsg = "Erro ao testar a chave da API.";
+
+  for (const model of modelsToTry) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": key
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: "Olá" }]
           }]
-        }]
-      })
-    });
-    if (!response.ok) {
+        })
+      });
+      if (response.ok) {
+        return { ok: true };
+      }
       const errData = await response.json().catch(() => ({}));
-      const msg = errData.error?.message || "Erro desconhecido da API.";
-      return { ok: false, error: msg };
+      lastMsg = errData.error?.message || `Status ${response.status}`;
+    } catch (err) {
+      lastMsg = err.message || "Erro de conexão de rede.";
     }
-    return { ok: true };
-  } catch (err) {
-    console.error(err);
-    return { ok: false, error: err.message || "Erro de conexão de rede." };
   }
+
+  return { ok: false, error: lastMsg };
 }
 
 

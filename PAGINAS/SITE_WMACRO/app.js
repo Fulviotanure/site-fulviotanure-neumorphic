@@ -1376,7 +1376,15 @@ function deleteMacro(id, cardElement = null) {
   }
 
   state.macros = state.macros.filter((m) => m.id !== id);
+  if (state.userProfile?.sharedMacros) {
+    state.userProfile.sharedMacros = state.userProfile.sharedMacros.filter((x) => x !== id);
+  }
   saveData("quickmacros_data", state.macros);
+
+  if (typeof fbFirestore !== "undefined" && fbFirestore.deleteMacro) {
+    fbFirestore.deleteMacro(id);
+  }
+
   showToast("Macro excluída.");
 
   // If dashboard is active, refresh stats
@@ -3171,6 +3179,30 @@ const fbFirestore = {
     } catch (e) { console.warn("Firestore offline:", e.message); }
   },
 
+  async saveMacros() {
+    if (!fbAuth.currentUser || !window._fbFns) return;
+    const uid = fbAuth.currentUser.uid;
+    const { doc, setDoc, deleteDoc, collection, getDocs } = window._fbFns;
+    const db = window._fbDb;
+    try {
+      const existingSnap = await getDocs(collection(db, "users", uid, "macros"));
+      const activeIds = state.macros.map(m => m.id);
+      const promises = [];
+
+      state.macros.forEach(m => {
+        promises.push(setDoc(doc(db, "users", uid, "macros", m.id), m));
+      });
+
+      existingSnap.docs.forEach(d => {
+        if (!activeIds.includes(d.id)) {
+          promises.push(deleteDoc(doc(db, "users", uid, "macros", d.id)));
+        }
+      });
+
+      await Promise.all(promises);
+    } catch(e) { console.warn("Error syncing macros:", e); }
+  },
+
   async saveMacro(macro) {
     if (!fbAuth.currentUser || !window._fbFns) return;
     const { doc, setDoc } = window._fbFns;
@@ -3181,6 +3213,7 @@ const fbFirestore = {
     if (!fbAuth.currentUser || !window._fbFns) return;
     const { doc, deleteDoc } = window._fbFns;
     await deleteDoc(doc(window._fbDb, "users", fbAuth.currentUser.uid, "macros", macroId));
+    await this.saveMacros();
   },
 
   async saveCategories() {
@@ -3262,7 +3295,7 @@ const _origSaveData = saveData;
 saveData = function(key, data) {
   _origSaveData(key, data);
   if (!fbAuth.currentUser) return;
-  if (key === "quickmacros_data") state.macros.forEach(m => fbFirestore.saveMacro(m));
+  if (key === "quickmacros_data") fbFirestore.saveMacros();
   else if (key === "quickmacros_categories") fbFirestore.saveCategories();
   else if (key === "quickmacros_variables") fbFirestore.saveVariables();
   else fbFirestore.saveAllData();

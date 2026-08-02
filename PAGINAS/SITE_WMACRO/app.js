@@ -2807,7 +2807,14 @@ ${varInstruction}`;
     }
   };
 
-  const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+  const models = [
+    "gemini-3.6-flash",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-flash",
+    "gemini-2.5-pro",
+    "gemini-1.5-flash"
+  ];
   let lastErrorMsg = "";
 
   for (const model of models) {
@@ -2841,7 +2848,14 @@ ${varInstruction}`;
 }
 
 async function testGeminiAPIKey(key) {
-  const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+  const models = [
+    "gemini-3.6-flash",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-flash",
+    "gemini-2.5-pro",
+    "gemini-1.5-flash"
+  ];
   let lastMsg = "Erro ao testar a chave da API.";
 
   for (const model of models) {

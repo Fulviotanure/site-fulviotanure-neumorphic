@@ -3989,11 +3989,11 @@ body.theme-dark .btn-ai-cutout:hover {
   margin-bottom: 40px;
   box-shadow: var(--glass-shadow-md);
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Prevents text clipping on Desktop PC */
 }
 
 body.theme-light .landing-hero-container {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   border-color: rgba(203, 213, 225, 0.9);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
@@ -4036,24 +4036,32 @@ body.theme-light .landing-badge {
   color: #0f172a;
 }
 
-/* Typography Banner Showcase */
+/* Typography Banner Showcase (Desktop PC & Mobile Optimized) */
 .landing-typography-showcase {
   margin-bottom: 24px;
+  width: 100%;
+  max-width: 900px;
 }
 .landing-title-main {
-  font-size: 42px;
-  line-height: 1.15;
-  letter-spacing: -1px;
-  margin-bottom: 12px;
+  font-size: 40px;
+  line-height: 1.3;
+  letter-spacing: -0.8px;
+  margin-bottom: 14px;
   color: var(--text-main);
+  display: block;
+  word-break: break-word;
+  overflow: visible;
 }
 
-body.theme-light .font-accent-gradient {
-  color: #1d4ed8;
+.font-accent-gradient {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 2px 4px;
+  font-weight: 900;
+  color: #1d4ed8; /* Fallback for PC Chrome */
   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 900;
 }
 
 body.theme-dark .font-accent-gradient {
@@ -4061,24 +4069,28 @@ body.theme-dark .font-accent-gradient {
   background: linear-gradient(135deg, #3b82f6 0%, #93c5fd 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 900;
 }
 
 .font-ampersand {
+  display: inline-block;
+  vertical-align: middle;
   font-family: Georgia, 'Times New Roman', serif;
   font-style: italic;
   font-weight: 400;
   color: var(--color-primary);
-  margin: 0 6px;
+  margin: 0 4px;
 }
 
-body.theme-light .font-highlight-bold {
-  color: #6b21a8;
+.font-highlight-bold {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 2px 4px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #6b21a8; /* Fallback for PC Chrome */
   background: linear-gradient(135deg, #6b21a8 0%, #be185d 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 body.theme-dark .font-highlight-bold {
@@ -4086,14 +4098,13 @@ body.theme-dark .font-highlight-bold {
   background: linear-gradient(135deg, #c084fc 0%, #f472b6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 .landing-sub-headline {
   font-size: 18px;
   font-weight: 700;
   color: var(--text-main);
+  line-height: 1.4;
 }
 
 body.theme-light .landing-sub-headline {

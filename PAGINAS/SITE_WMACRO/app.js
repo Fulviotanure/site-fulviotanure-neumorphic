@@ -2563,6 +2563,67 @@ function setupEventListeners() {
   });
   document.getElementById("btn-mobile-settings")?.addEventListener("click", () => switchTab("settings"));
   document.getElementById("btn-mobile-help")?.addEventListener("click", () => switchTab("help"));
+
+  // Landing Showcase Page Event Handlers
+  document.querySelectorAll(".btn-cta-start-app").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!fbAuth.requireAuth()) return;
+      openEditor(null, "dashboard");
+    });
+  });
+
+  document.querySelector(".btn-cta-demo")?.addEventListener("click", () => {
+    document.getElementById("landing-demo-section")?.scrollIntoView({ behavior: "smooth" });
+  });
+
+  // Landing Interactive Sandbox Controls
+  let simTime = "09:00";
+  const updateSandbox = () => {
+    const nameInput = document.getElementById("sandbox-client-name");
+    const name = (nameInput?.value.trim()) || "João Silva";
+    const output = document.getElementById("sandbox-preview-output");
+    if (!output) return;
+
+    let greeting = "Bom dia";
+    const [h] = simTime.split(":").map(Number);
+    if (h >= 12 && h < 18) greeting = "Boa tarde";
+    else if (h >= 18 || h < 5) greeting = "Boa noite";
+
+    output.innerHTML = `
+      <span class="var-pill" style="--pill-color: #3b82f6;">${escapeHTML(greeting)}</span> <span class="var-pill" style="--pill-color: #10b981;">${escapeHTML(name)}</span>,<br><br>
+      Obrigado pelo seu contato! Confirmamos o recebimento da sua mensagem e já iniciamos a análise da sua solicitação com nossa equipe comercial.<br><br>
+      Qualquer dúvida, estamos à disposição!
+    `;
+  };
+
+  document.querySelectorAll(".btn-time-sim").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      document.querySelectorAll(".btn-time-sim").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      simTime = btn.getAttribute("data-time") || "09:00";
+      updateSandbox();
+    });
+  });
+
+  document.getElementById("sandbox-client-name")?.addEventListener("input", updateSandbox);
+
+  // Use Landing Template Button
+  document.querySelectorAll(".btn-use-landing-template").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (!fbAuth.requireAuth()) return;
+      const title = btn.getAttribute("data-title") || "Nova Macro";
+      const category = btn.getAttribute("data-category") || "geral";
+      const body = btn.getAttribute("data-body") || "";
+
+      openEditor(null, "dashboard");
+      el.modalName.value = title;
+      if (el.modalCategory) el.modalCategory.value = category;
+      refreshCustomSelect(el.modalCategory);
+      el.editorContainer.innerHTML = body;
+      saveEditorState();
+      showToast(`Modelo "${title}" carregado no Editor!`);
+    });
+  });
 }
 
 // =============================================

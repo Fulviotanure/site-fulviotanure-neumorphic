@@ -80,7 +80,11 @@
             </div>
 
             <nav class="sidebar-menu">
-                <button class="menu-item active" data-tab="dashboard">
+                <button class="menu-item active" data-tab="landing">
+                    <i data-lucide="sparkles"></i>
+                    <span>Início</span>
+                </button>
+                <button class="menu-item" data-tab="dashboard">
                     <i data-lucide="layout-dashboard"></i>
                     <span>Dashboard</span>
                 </button>
@@ -132,6 +136,182 @@
 
         <!-- Main Content Area -->
         <main class="main-content">
+
+            <!-- ======================================== -->
+            <!-- 0. LANDING SHOWCASE / HOME TAB          -->
+            <!-- ======================================== -->
+            <section id="tab-landing" class="tab-panel">
+                <div class="landing-hero-container">
+                    <div class="landing-badge">
+                        <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--color-primary);"></i>
+                        <span>WMacro • Sistema Inteligente de Respostas Rápidas com IA</span>
+                    </div>
+
+                    <h1 class="landing-title">
+                        Agilize seu Atendimento no WhatsApp e Redes Sociais com <span class="gradient-text">Macros Inteligentes e IA</span>
+                    </h1>
+
+                    <p class="landing-subtitle">
+                        Crie respostas profissionais formatadas em segundos, adapte saudações automaticamente ao horário de envio e refine seus textos com 1 clique utilizando a IA do Google Gemini.
+                    </p>
+
+                    <div class="landing-cta-group">
+                        <button class="btn btn-primary btn-large btn-cta-start-app">
+                            <i data-lucide="rocket"></i> Começar a Usar Agora
+                        </button>
+                        <button class="btn btn-secondary btn-large btn-cta-demo">
+                            <i data-lucide="play-circle"></i> Ver Demonstração Prática
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Sandbox Section -->
+                <div class="landing-section" id="landing-demo-section">
+                    <div class="landing-section-header">
+                        <span class="badge">Demonstração ao Vivo</span>
+                        <h2>Veja como as Variáveis Inteligentes Funcionam na Prática</h2>
+                        <p>Altere o horário simulado ou o nome do cliente abaixo para ver a macro se adaptar automaticamente em tempo real:</p>
+                    </div>
+
+                    <div class="landing-sandbox-card">
+                        <div class="sandbox-controls">
+                            <div class="form-group">
+                                <label><i data-lucide="clock" style="width:14px;height:14px;"></i> Horário Simulado do Envio</label>
+                                <div class="sandbox-time-options">
+                                    <button type="button" class="btn-time-sim active" data-time="09:00">09:00 (Manhã)</button>
+                                    <button type="button" class="btn-time-sim" data-time="14:30">14:30 (Tarde)</button>
+                                    <button type="button" class="btn-time-sim" data-time="20:00">20:00 (Noite)</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-top:16px;">
+                                <label><i data-lucide="user" style="width:14px;height:14px;"></i> Nome do Cliente</label>
+                                <input type="text" id="sandbox-client-name" class="form-control" value="João Silva" placeholder="Digite o nome do cliente...">
+                            </div>
+                        </div>
+
+                        <div class="sandbox-preview">
+                            <div class="sandbox-preview-header">
+                                <span><i data-lucide="eye" style="width:14px;height:14px;"></i> Pré-visualização da Resposta Enviada</span>
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Pronto para Copiar</span>
+                            </div>
+                            <div class="sandbox-preview-body" id="sandbox-preview-output">
+                                <span class="var-pill" style="--pill-color: #3b82f6;">Bom dia</span> <span class="var-pill" style="--pill-color: #10b981;">João Silva</span>,<br><br>
+                                Obrigado pelo seu contato! Confirmamos o recebimento da sua mensagem e já iniciamos a análise da sua solicitação com nossa equipe comercial.<br><br>
+                                Qualquer dúvida, estamos à disposição!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Grid Cards -->
+                <div class="landing-section">
+                    <div class="landing-section-header">
+                        <span class="badge">Por que utilizar o WMacro?</span>
+                        <h2>Recursos Essenciais para Equipes de Vendas e Suporte</h2>
+                    </div>
+
+                    <div class="landing-features-grid">
+                        <div class="landing-feature-card">
+                            <div class="feature-icon-wrapper" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                                <i data-lucide="clock"></i>
+                            </div>
+                            <h3>Variáveis Temporais Automáticas</h3>
+                            <p>Chega de enviar "Bom dia" à noite por engano. A sua resposta detecta a hora do envio e escolhe a saudação correta automaticamente.</p>
+                        </div>
+
+                        <div class="landing-feature-card">
+                            <div class="feature-icon-wrapper" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                                <i data-lucide="sparkles"></i>
+                            </div>
+                            <h3>Polimento por IA (Google Gemini)</h3>
+                            <p>Refine a ortografia, ajuste o tom de voz comercial e melhore a clareza da sua resposta com 1 clique direto no editor.</p>
+                        </div>
+
+                        <div class="landing-feature-card">
+                            <div class="feature-icon-wrapper" style="background: rgba(168, 85, 247, 0.12); color: #a855f7;">
+                                <i data-lucide="copy"></i>
+                            </div>
+                            <h3>Cópia Rápida em HTML e Texto</h3>
+                            <p>Compatível com WhatsApp Web, Instagram, e-mail, CRM e qualquer plataforma de atendimento do mercado.</p>
+                        </div>
+
+                        <div class="landing-feature-card">
+                            <div class="feature-icon-wrapper" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                                <i data-lucide="users"></i>
+                            </div>
+                            <h3>Compartilhamento em Equipe</h3>
+                            <p>Crie um grupo de trabalho com seu time de suporte e compartilhe as macros de melhor desempenho da sua empresa.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Practical Examples Section -->
+                <div class="landing-section">
+                    <div class="landing-section-header">
+                        <span class="badge">Exemplos Práticos</span>
+                        <h2>Modelos Prontos para Usar no seu Dia a Dia</h2>
+                    </div>
+
+                    <div class="landing-examples-grid">
+                        <!-- Example 1 -->
+                        <div class="landing-example-card">
+                            <div class="example-card-header">
+                                <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">Atendimento & Vendas</span>
+                                <h4>Apresentação Comercial & Chave Pix</h4>
+                            </div>
+                            <div class="example-card-body">
+                                <p><span class="var-pill" style="--pill-color: #3b82f6;">{saudacao}</span> <span class="var-pill" style="--pill-color: #10b981;">{Nome do Cliente}</span>, tudo bem?</p>
+                                <p>Segue a proposta comercial solicitada. Para pagamento via Pix com desconto especial, utilize nossa chave abaixo:</p>
+                                <p><strong>Chave Pix (CNPJ):</strong> 00.000.000/0001-00</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small btn-use-landing-template" data-title="Apresentação Comercial & Pix" data-category="vendas" data-body="&lt;span class=&quot;var-pill&quot; data-var=&quot;saudacao&quot; contenteditable=&quot;false&quot; style=&quot;--pill-color: #3b82f6;&quot;&gt;saudacao&lt;/span&gt; &lt;span class=&quot;var-pill&quot; data-var=&quot;Nome do Cliente&quot; contenteditable=&quot;false&quot; style=&quot;--pill-color: #10b981;&quot;&gt;Nome do Cliente&lt;/span&gt;, tudo bem?&lt;br&gt;&lt;br&gt;Segue a proposta comercial solicitada. Para pagamento via Pix com desconto especial, utilize nossa chave abaixo:&lt;br&gt;&lt;br&gt;&lt;strong&gt;Chave Pix (CNPJ):&lt;/strong&gt; 00.000.000/0001-00">
+                                <i data-lucide="plus"></i> Usar Esta Macro no Editor
+                            </button>
+                        </div>
+
+                        <!-- Example 2 -->
+                        <div class="landing-example-card">
+                            <div class="example-card-header">
+                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Suporte Técnico</span>
+                                <h4>Abertura e Confirmação de Ticket</h4>
+                            </div>
+                            <div class="example-card-body">
+                                <p><span class="var-pill" style="--pill-color: #3b82f6;">{saudacao}</span> <span class="var-pill" style="--pill-color: #10b981;">{Nome do Cliente}</span>, recebemos seu chamado!</p>
+                                <p>Sua solicitação foi registrada no nosso sistema e nosso especialista já está analisando o problema.</p>
+                                <p>Tempo estimado de resposta: até 15 minutos.</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small btn-use-landing-template" data-title="Abertura de Ticket de Suporte" data-category="suporte" data-body="&lt;span class=&quot;var-pill&quot; data-var=&quot;saudacao&quot; contenteditable=&quot;false&quot; style=&quot;--pill-color: #3b82f6;&quot;&gt;saudacao&lt;/span&gt; &lt;span class=&quot;var-pill&quot; data-var=&quot;Nome do Cliente&quot; contenteditable=&quot;false&quot; style=&quot;--pill-color: #10b981;&quot;&gt;Nome do Cliente&lt;/span&gt;, recebemos seu chamado!&lt;br&gt;&lt;br&gt;Sua solicitação foi registrada no nosso sistema e nosso especialista já está analisando o problema.&lt;br&gt;&lt;br&gt;Tempo estimado de resposta: até 15 minutos.">
+                                <i data-lucide="plus"></i> Usar Esta Macro no Editor
+                            </button>
+                        </div>
+
+                        <!-- Example 3 -->
+                        <div class="landing-example-card">
+                            <div class="example-card-header">
+                                <span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">Agendamento</span>
+                                <h4>Confirmação de Consulta / Horário</h4>
+                            </div>
+                            <div class="example-card-body">
+                                <p><span class="var-pill" style="--pill-color: #3b82f6;">{saudacao}</span> <span class="var-pill" style="--pill-color: #10b981;">{Nome do Cliente}</span>! Passando para confirmar seu horário agendado.</p>
+                                <p>Pedimos a gentileza de responder este texto com <strong>CONFIRMAR</strong> ou <strong>REAGENDAR</strong>.</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small btn-use-landing-template" data-title="Confirmação de Horário Agendado" data-category="geral" data-body="&lt;span class=&quot;var-pill&quot; data-var=&quot;saudacao&quot; contenteditable=&quot;false&quot; style=&quot;--pill-color: #3b82f6;&quot;&gt;saudacao&lt;/span&gt; &lt;span class=&quot;var-pill&quot; data-var=&quot;Nome do Cliente&quot; contenteditable=&quot;false&quot; style=&quot;--pill-color: #10b981;&quot;&gt;Nome do Cliente&lt;/span&gt;! Passando para confirmar seu horário agendado.&lt;br&gt;&lt;br&gt;Pedimos a gentileza de responder este texto com &lt;strong&gt;CONFIRMAR&lt;/strong&gt; ou &lt;strong&gt;REAGENDAR&lt;/strong&gt;.">
+                                <i data-lucide="plus"></i> Usar Esta Macro no Editor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Final CTA Footer Banner -->
+                <div class="landing-bottom-banner">
+                    <h2>Pronto para Acelerar a Produtividade do seu Atendimento?</h2>
+                    <p>Comece a criar suas respostas rápidas gratuitas agora mesmo em segundos.</p>
+                    <button class="btn btn-primary btn-large btn-cta-start-app">
+                        <i data-lucide="rocket"></i> Começar a Usar Gratuitamente
+                    </button>
+                </div>
+            </section>
 
             <!-- ======================================== -->
             <!-- 1. DASHBOARD TAB (Stats only)           -->
@@ -1410,7 +1590,7 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="app.js?v=6.0.0&t=20260802_varpillfix"></script>
+    <script src="app.js?v=7.0.0&t=20260802_landingshowcase"></script>
 </body>
 
 </html>

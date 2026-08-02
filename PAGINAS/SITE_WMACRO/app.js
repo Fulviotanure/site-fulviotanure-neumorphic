@@ -2774,6 +2774,35 @@ function refreshCustomSelect(selectEl) {
   if (selectEl && selectEl._customRefresh) selectEl._customRefresh();
 }
 
+function convertVariablesToPills(htmlText) {
+  if (!htmlText) return htmlText;
+
+  let processed = htmlText;
+
+  if (state.variables && Array.isArray(state.variables)) {
+    state.variables.forEach((v) => {
+      if (!v || !v.name) return;
+      const varName = v.name;
+      const color = v.color || "#3b82f6";
+      const pillHtml = `<span class="var-pill" data-var="${escapeHTML(varName)}" contenteditable="false" style="--pill-color: ${color};">${escapeHTML(varName)}</span>`;
+
+      // Replace {VarName} or { VarName }
+      const bracketRegex = new RegExp(`\\{\\s*${escapeRegex(varName)}\\s*\\}`, "gi");
+      processed = processed.replace(bracketRegex, pillHtml);
+
+      // Replace any span lacking var-pill class
+      const spanRegex = new RegExp(`<span(?![^>]*class="[^"]*var-pill")[^>]*>\\s*\\{?\\s*${escapeRegex(varName)}\\s*\\}?\\s*<\\/span>`, "gi");
+      processed = processed.replace(spanRegex, pillHtml);
+    });
+  }
+
+  return processed;
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 async function callGeminiAI(text) {
   if (!state.geminiApiKey || !state.geminiApiKey.trim()) {
     showToast("Por favor, insira sua chave da API do Gemini nas Configurações.", false);
@@ -2785,14 +2814,16 @@ async function callGeminiAI(text) {
     ? state.variables.map(v => `{${v.name}}`).join(", ")
     : "";
   const varInstruction = activeVars
-    ? `Variáveis disponíveis do sistema: ${activeVars}. Mantenha as tags HTML de variáveis existentes se houver.`
+    ? `Variáveis cadastradas no sistema: ${activeVars}. Mantenha ou utilize a sintaxe de chaves {Nome da Variável} caso o texto exija variáveis.`
     : "";
 
-  const systemInstructionText = `Você é um assistente de escrita de atendimento profissional.
-Sua única tarefa é reescrever o texto do usuário em tom cortês, claro, profissional e objetivo em HTML.
-NÃO inclua explicações, notas, raciocínios, rascunhos (Draft 1/2), nem marcações markdown como \`\`\`html.
-Retorne EXCLUSIVAMENTE o texto final polido em formato HTML.
-${varInstruction}`;
+  const systemInstructionText = `Você é um corretor e polidor de texto estritamente profissional para respostas rápidas de atendimento (macros).
+
+REGRAS OBRIGATÓRIAS:
+1. NÃO aja como um chatbot, NÃO responda à mensagem do usuário, NÃO crie diálogos fictícios e NÃO invente mensagens de confirmação de teste (como "Agradecemos o contato", "Confirmamos o teste", etc.).
+2. Sua ÚNICA função é pegar o texto fornecido pelo usuário e fazer o POLIMENTO DIRETO: corrigir ortografia, gramática, pontuação e melhorar a fluidez, mantendo a intenção, a mensagem e o sentido original do usuário.
+3. ${varInstruction}
+4. Retorne EXCLUSIVAMENTE o texto polido final em formato HTML (não use blocos markdown como \`\`\`html).`;
 
   const payload = {
     system_instruction: {
@@ -2832,7 +2863,7 @@ ${varInstruction}`;
         if (rawText) {
           let cleaned = rawText.trim();
           cleaned = cleaned.replace(/^```html\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "");
-          return cleaned.trim();
+          return convertVariablesToPills(cleaned.trim());
         }
       } else {
         const errData = await response.json().catch(() => ({}));
